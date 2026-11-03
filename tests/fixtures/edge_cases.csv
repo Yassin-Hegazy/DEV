@@ -1,0 +1,11 @@
+"PermitNumber","SequenceNumber","BoroughName","IssueDate","Comments","Units"
+"B01202600001","0001","BROOKLYN","08/31/2026 03:11:54 PM","Normal record","12"
+"B01202600002","0002","Brooklyn ","08/31/2026","",
+"B01202600003",,"","13/45/2026","Invalid-looking date","007"
+"0000123","0010","bk","not a date","Comma, inside quotes","0"
+"B01202600005","0001","QUEENS","2026-02-30","Line one
+line two","5"
+"B01202600006","0001","MANHATTAN","","Unicode: café – Bronx 🏙 日本","  3 "
+"B01202600001","0001","BROOKLYN","08/31/2026 03:11:54 PM","Normal record","12"
+"B01202600007","0001","STATEN ISLAND","00/00/0000","Embedded ""quotes"" here","-1"
+,,,,,
