@@ -1,0 +1,3 @@
+# Keep CSV fixtures byte-exact on every platform (no CRLF conversion).
+*.csv -text
+tests/fixtures/** -text

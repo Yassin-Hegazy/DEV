@@ -1,0 +1,2 @@
+# Local Dagster instance. Defaults: SQLite run/event storage in this directory.
+# Everything here except this file is git-ignored.

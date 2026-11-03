@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------------------
+# Data: never commit source datasets or generated layers.
+# Directory skeletons are kept via .gitkeep files.
+# ---------------------------------------------------------------------------
+data/**
+!data/
+!data/*/
+!data/**/.gitkeep
+!data/README.md
+
+# Any stray tabular / columnar data outside data/ (test fixtures are allowed)
+*.parquet
+*.csv
+*.csv.gz
+*.zip
+!tests/fixtures/**/*.csv
+
+# ---------------------------------------------------------------------------
+# Pipeline execution artifacts
+# ---------------------------------------------------------------------------
+logs/**
+!logs/.gitkeep
+
+# Dagster instance storage (run history, event logs, compute logs)
+.dagster_home/**
+!.dagster_home/dagster.yaml
+.tmp_dagster_home_*/
+tmp*/
+storage/
+
+# ---------------------------------------------------------------------------
+# Python / tooling
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Credentials and local environment
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials*.json
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
