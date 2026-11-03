@@ -1,0 +1,102 @@
+# NYC Housing & Infrastructure pipeline configuration.
+#
+# `project_root` is relative to this file; every other path is relative to `project_root`.
+# Point the NYC_PIPELINE_CONFIG environment variable at another file to override it.
+
+[paths]
+project_root = ".."
+source_dir = "data/source"
+bronze_dir = "data/bronze"
+log_dir = "logs"
+
+[parquet]
+# zstd level 3 is the zstd library default (speed/size balance). Revisit after benchmarking.
+compression = "zstd"
+compression_level = 3
+# Omitted => Polars default row-group size. Tune later from benchmark evidence.
+# row_group_size = 250000
+
+[validation]
+# Source records compared value-by-value against Bronze (seeded random sample + last record).
+sample_size = 1000
+sample_seed = 20261103
+
+# ---------------------------------------------------------------------------
+# Datasets. `source_pattern` is a glob inside `source_dir`; exactly one file must match.
+# `expected_columns` is the header observed in the supplied files: a missing column
+# fails ingestion; extra or re-ordered columns are kept as-is and reported as a warning.
+# ---------------------------------------------------------------------------
+
+[datasets.housing_production]
+title = "Affordable Housing Production by Project"
+socrata_id = "hq68-rnsi"
+source_pattern = "Affordable_Housing_Production_by_Project_*.csv"
+identifier_columns = ["Project ID"]
+expected_columns = [
+    "Project ID",
+    "Project Name",
+    "Program Group",
+    "Project Start Date",
+    "Project Completion Date",
+    "Extended Affordability Only",
+    "Prevailing Wage Status",
+    "Planned Tax Benefit",
+    "Extremely Low Income Units",
+    "Very Low Income Units",
+    "Low Income Units",
+    "Moderate Income Units",
+    "Middle Income Units",
+    "Other Income Units",
+    "Counted Rental Units",
+    "Counted Homeownership Units",
+    "All Counted Units",
+    "Total Units",
+    "Senior Units",
+]
+
+[datasets.street_construction_permits]
+title = "Street Construction Permits (2022 - Present)"
+socrata_id = "tqtj-sjs8"
+source_pattern = "Street_Construction_Permits_(2022_-_Present)_*.csv"
+identifier_columns = ["PermitNumber"]
+expected_columns = [
+    "PermitNumber",
+    "ApplicationTrackingID",
+    "SequenceNumber",
+    "ApplicationTypeShortDesc",
+    "PermitStatusID",
+    "PermitStatusShortDesc",
+    "PermitSeriesID",
+    "PermitSeriesShortDesc",
+    "PermitTypeID",
+    "PermitTypeDesc",
+    "PermitNumberOfZones",
+    "PermitLinearFeet",
+    "PermitTotalSqFeet",
+    "PermitEstimatedNumberOfCuts",
+    "EquipmentTypeDesc",
+    "NumberOfContainers",
+    "NumberOfMiniContainers",
+    "SpecificStipulations",
+    "PreviousPermitNumber",
+    "NextPermitNumber",
+    "EmergencyIssueDate",
+    "PermitIssueDate",
+    "IssuedWorkStartDate",
+    "IssuedWorkEndDate",
+    "BoroughName",
+    "PermitHouseNumber",
+    "OnStreetName",
+    "FromStreetName",
+    "ToStreetName",
+    "PermitteeName",
+    "PermitPurposeComments",
+    "PermitLocationComments",
+    "PavementShortDesc",
+    "SideWalkShortDesc",
+    "CreatedOn",
+    "ModifiedOn",
+    "OFTCode",
+    "WKT",
+    "LocationGeometry",
+]
