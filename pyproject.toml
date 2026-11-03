@@ -1,0 +1,67 @@
+[project]
+name = "nyc-housing-pipeline"
+version = "0.1.0"
+description = "Batch data pipeline relating NYC affordable housing production to street construction activity."
+readme = "README.md"
+authors = [
+    { name = "Yassin-Hegazy", email = "yassin.hegazy@student.giu-uni.de" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "dagster>=1.13.28",
+    "polars>=2.1.0",
+    "psutil>=7.2.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "dagster-webserver>=1.13.28",
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.dagster]
+module_name = "nyc_housing_pipeline.orchestration.definitions"
+code_location_name = "nyc_housing_pipeline"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+filterwarnings = ["ignore::dagster.BetaWarning", "ignore::dagster.PreviewWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "SIM", # simplify
+    "N",   # naming
+    "PTH", # prefer pathlib
+    "RUF", # ruff-specific
+    "BLE", # blind except
+    "PL",  # pylint subset
+]
+ignore = [
+    "PLR0913", # explicit keyword-only argument lists are intentional (manifest builder)
+    "PLR0915", # the ingestion sequence is long by design and reads top-to-bottom
+    "PLR2004", # magic values are fine in tests
+]
+
+[tool.ruff.lint.per-file-ignores]
+# RUF001: fixtures intentionally contain non-ASCII characters (Unicode preservation tests).
+"tests/**" = ["PLR0913", "PLC0415", "RUF001"]
+
+[tool.ruff.format]
+quote-style = "double"
