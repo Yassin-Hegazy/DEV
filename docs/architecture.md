@@ -76,6 +76,43 @@ which keeps memory bounded. The chance of a collision across 4M rows is about 4e
 files. A missing column fails ingestion, because downstream code would break.
 Extra or re-ordered columns are kept as-is and reported as a warning.
 
+### D8. Housing source: building level (`hg8x-zxpr`) replaces project level (`hq68-rnsi`) — 2026-11-03
+
+**Context.** The first Bronze run ingested *Affordable Housing Production by
+Project* (`hq68-rnsi`: 5,928 rows × 19 columns, one row per project). It has no
+location fields, so it cannot be joined with street-construction permits by place.
+
+**Decision.** The housing source is now *Affordable Housing Production by Building*
+(<https://data.cityofnewyork.us/d/hg8x-zxpr>). It has one row per building within a
+project and carries borough, ZIP code, street address, BBL, BIN, community board,
+council district, census tract, NTA and latitude/longitude.
+
+**What changes with the granularity.** A project with several buildings now has
+several rows. In the supplied file (9,551 × 41):
+- `Project ID` has 5,928 distinct values, matching the old project count, and
+  repeats in 3,623 rows;
+- `Building ID` is null in 1,949 rows and repeats in 124 rows, because the same
+  building can appear in more than one project;
+- BIN and BBL also repeat, and are null in 2,021 rows.
+
+No column has verified key semantics, so housing has no `identifier_columns`. Every
+row is kept, and key analysis is left to profiling and Silver.
+
+**How it was done (smallest safe change).**
+- Only the `housing_production` entry in `config/pipeline.toml` changed: id, title,
+  file pattern, 41 expected columns, no identifiers. The ingestion code is
+  schema-agnostic and was not modified.
+- The dataset key and Dagster asset (`bronze/housing_production`) keep their names,
+  so jobs, lineage and run history stay valid.
+- The file pattern names `by_Building`, so the old `by_Project` CSV in
+  `data/source/` can never be selected. A by-Project file renamed to look like a
+  building file fails the column contract.
+- New source bytes produce a new snapshot id, and `latest.json` now points to the
+  building-level snapshot. The by-Project CSV and its snapshot
+  (`4207820f388370b5_903f4c1a`) were no longer needed and were deleted on
+  2026-11-04.
+- Transportation config, settings fingerprint and snapshot were not touched.
+
 ## Known limitations
 
 - **Format:** UTF-8, comma-delimited, `"`-quoted CSV only. A BOM is tolerated.

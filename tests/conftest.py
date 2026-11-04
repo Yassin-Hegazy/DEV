@@ -30,9 +30,17 @@ EDGE_CASE_ROWS: list[tuple[str | None, ...]] = [
 ]
 
 
-def write_config(root: Path, datasets: dict[str, str], expected_columns=COLUMNS) -> Path:
+def write_config(
+    root: Path,
+    datasets: dict[str, str],
+    expected_columns=COLUMNS,
+    *,
+    socrata_id: str = "test-0000",
+    identifier_columns=("PermitNumber",),
+) -> Path:
     """Write a pipeline.toml under ``root``; ``datasets`` maps dataset key -> source glob."""
     columns = ", ".join(f'"{c}"' for c in expected_columns)
+    identifiers = ", ".join(f'"{c}"' for c in identifier_columns)
     lines = [
         '[paths]\nproject_root = ".."\nsource_dir = "data/source"',
         'bronze_dir = "data/bronze"\nlog_dir = "logs"',
@@ -41,9 +49,9 @@ def write_config(root: Path, datasets: dict[str, str], expected_columns=COLUMNS)
     ]
     for key, pattern in datasets.items():
         lines.append(
-            f'[datasets.{key}]\ntitle = "{key}"\nsocrata_id = "test-0000"\n'
+            f'[datasets.{key}]\ntitle = "{key}"\nsocrata_id = "{socrata_id}"\n'
             f'source_pattern = "{pattern}"\nexpected_columns = [{columns}]\n'
-            'identifier_columns = ["PermitNumber"]'
+            f"identifier_columns = [{identifiers}]"
         )
     path = root / "config" / "pipeline.toml"
     path.parent.mkdir(parents=True, exist_ok=True)

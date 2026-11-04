@@ -27,31 +27,59 @@ sample_seed = 20261103
 # fails ingestion; extra or re-ordered columns are kept as-is and reported as a warning.
 # ---------------------------------------------------------------------------
 
+# One row per *building* within a housing project (https://data.cityofnewyork.us/d/hg8x-zxpr).
+# Replaced the project-level dataset hq68-rnsi; see docs/architecture.md, D8.
+# The pattern names "by_Building" explicitly, so the old by_Project file can never match.
 [datasets.housing_production]
-title = "Affordable Housing Production by Project"
-socrata_id = "hq68-rnsi"
-source_pattern = "Affordable_Housing_Production_by_Project_*.csv"
-identifier_columns = ["Project ID"]
+title = "Affordable Housing Production by Building"
+socrata_id = "hg8x-zxpr"
+source_pattern = "Affordable_Housing_Production_by_Building_*.csv"
+# No unique key is configured: "Project ID" repeats across a project's buildings,
+# "Building ID" can be null and can recur across projects, and BIN/BBL repeat too.
+# Key semantics are a profiling / Silver question; Bronze keeps every row.
+identifier_columns = []
 expected_columns = [
     "Project ID",
     "Project Name",
-    "Program Group",
     "Project Start Date",
     "Project Completion Date",
+    "Building ID",
+    "Number",
+    "Street",
+    "Borough",
+    "Postcode",
+    "BBL",
+    "BIN",
+    "Community Board",
+    "Council District",
+    "Census Tract",
+    "NTA - Neighborhood Tabulation Area",
+    "Latitude",
+    "Longitude",
+    "Latitude (Internal)",
+    "Longitude (Internal)",
+    "Building Completion Date",
+    "Reporting Construction Type",
     "Extended Affordability Only",
     "Prevailing Wage Status",
-    "Planned Tax Benefit",
     "Extremely Low Income Units",
     "Very Low Income Units",
     "Low Income Units",
     "Moderate Income Units",
     "Middle Income Units",
     "Other Income Units",
+    "Studio Units",
+    "1-BR Units",
+    "2-BR Units",
+    "3-BR Units",
+    "4-BR Units",
+    "5-BR Units",
+    "6-BR+ Units",
+    "Unknown-BR Units",
     "Counted Rental Units",
     "Counted Homeownership Units",
     "All Counted Units",
     "Total Units",
-    "Senior Units",
 ]
 
 [datasets.street_construction_permits]

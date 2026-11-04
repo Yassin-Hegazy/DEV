@@ -34,9 +34,10 @@ about 2–7 s. Most of the ~2.5-minute ingestion is spent on that independent ch
 | Compression ratio | 6.96× | 14.57× |
 | Snapshot id | `4207820f388370b5_903f4c1a` | `7b46f29d1803a24f_903f4c1a` |
 
-The housing file is the **by Project** dataset. The brief described **by Building**
-(`hg8x-zxpr`, about 9,551 rows and 41 columns). This should be confirmed before
-Silver design starts.
+The housing file in this table is the **by Project** dataset. The brief had
+described **by Building** (`hg8x-zxpr`). **This housing column has been superseded:**
+the building-level dataset replaced it the same day. See section 9 and
+[architecture D8](architecture.md). The permits column is unaffected.
 
 ## 4. Validation results
 
@@ -165,3 +166,37 @@ metadata. This is why Bronze validation of the 4M-row file takes 0.7 s.
 - Each figure is a single observation (except the repeated 1-thread run). These
   are indicative measurements, not a statistically rigorous benchmark.
 - Peak memory is the OS-reported peak working set of the process.
+
+## 9. Addendum: housing source migration (2026-11-03)
+
+The housing source was switched to *Affordable Housing Production by Building*
+(`hg8x-zxpr`, <https://data.cityofnewyork.us/d/hg8x-zxpr>); see architecture D8.
+Only the housing asset was run. The permits CSV, its Parquet output and the
+benchmarks above were not re-run or modified: their size and modification times
+were identical before and after.
+
+| | Housing production (by Building) |
+| --- | --- |
+| NYC Open Data ID | `hg8x-zxpr` |
+| Source file | `Affordable_Housing_Production_by_Building_20261103.csv` |
+| Source size | 2,699,790 B |
+| Records × columns | 9,551 × 41 (9,552 physical lines) |
+| Bronze Parquet | 526,534 B (9,551 rows × 41 columns, all String) |
+| Compression ratio | 5.13× |
+| Ingestion time | 0.47 s (Dagster step 2.1 s, including process start-up) |
+| Snapshot id | `44ad245c073fafc9_903f4c1a` |
+
+Validation results:
+- **All 7 checks passed.** The 1,000-record sample had 0 mismatches.
+- **Full comparison.** Because the file is small, every value was also compared
+  against an independent parse of the CSV: all 9,551 × 41 values are identical.
+- **Granularity.**
+  - `Project ID` repeats in 3,623 rows (5,928 distinct, matching the old project
+    count).
+  - `Building ID` is null in 1,949 rows.
+  - There are 0 exact duplicate rows.
+  - All rows were kept.
+- **Idempotency.** A second housing run reused the snapshot.
+
+`latest.json` points to the building-level snapshot. The by-Project CSV and its
+snapshot `4207820f388370b5_903f4c1a` were deleted on 2026-11-04 as no longer needed.

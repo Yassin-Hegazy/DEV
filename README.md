@@ -24,13 +24,22 @@ Design decisions: [docs/architecture.md](docs/architecture.md).
 
 | Key | Dataset | NYC Open Data ID | Expected file in `data/source/` |
 | --- | --- | --- | --- |
-| `housing_production` | Affordable Housing Production **by Project** (HPD) | `hq68-rnsi` | `Affordable_Housing_Production_by_Project_*.csv` |
+| `housing_production` | [Affordable Housing Production **by Building**](https://data.cityofnewyork.us/d/hg8x-zxpr) (HPD) | `hg8x-zxpr` | `Affordable_Housing_Production_by_Building_*.csv` |
 | `street_construction_permits` | Street Construction Permits (2022 – Present) (DOT) | `tqtj-sjs8` | `Street_Construction_Permits_(2022_-_Present)_*.csv` |
 
-> **Note:** the project brief described *Affordable Housing Production by
-> Building* (`hg8x-zxpr`). The file actually supplied is *by Project*
-> (`hq68-rnsi`, 19 columns), and the configuration describes that file. To switch,
-> download the by-Building file and update its entry in `config/pipeline.toml`.
+> **Housing source migration (2026-11-03).** The first Bronze run ingested
+> *Affordable Housing Production by Project* (`hq68-rnsi`), which has one row per
+> project and no location fields. That was the wrong dataset. The active source is
+> now *by Building* (`hg8x-zxpr`): one row per building within a project, with
+> borough, ZIP code, address, BBL, BIN and latitude/longitude. Those fields are what
+> the future join with street-construction permits needs.
+>
+> Because each row is now a building, `Project ID` repeats once for every building
+> in a project, and the same building can appear in more than one project. No
+> column is treated as a unique key in Bronze.
+>
+> The old by-Project CSV and its Bronze snapshot are no longer needed and have
+> been deleted. See [docs/architecture.md](docs/architecture.md), D8.
 
 Row counts, sizes and checksums are **measured at ingestion** and stored in each
 snapshot's manifest. None of them are hard-coded.
@@ -100,8 +109,9 @@ uv sync                                   # .venv from uv.lock, dev tools includ
 1. Download both datasets from NYC Open Data as CSV.
 2. Put them in `data/source/` **unchanged**. The date suffix the portal adds to the
    filename is matched by the patterns in the config.
-3. Keep **exactly one** file per dataset in that folder. Zero or several matches
-   stop ingestion with an error.
+3. Make sure **exactly one** file matches each dataset's pattern. Zero or several
+   matches stop ingestion with an error. The housing pattern names `by_Building`
+   explicitly, so an old `..._by_Project_*.csv` file in the same folder is ignored.
 
 ## Run Bronze ingestion
 
@@ -112,6 +122,24 @@ $m = "nyc_housing_pipeline.orchestration.definitions"
 uv run dagster asset materialize -m $m --select bronze/housing_production
 uv run dagster asset materialize -m $m --select bronze/street_construction_permits
 uv run dagster job execute -m $m -j bronze_ingestion_all        # both, in parallel
+```
+
+The housing command touches only the housing asset. The 2.9 GB permits file is not
+read.
+
+### Verify a Bronze snapshot
+
+`data/bronze/<dataset>/latest.json` names the active snapshot. Its `manifest.json`
+records:
+- the dataset id (`hg8x-zxpr` for housing);
+- the source filename and SHA-256;
+- the record and column counts;
+- the result of every check.
+
+A quick look from the shell:
+
+```powershell
+uv run python -c "import json,polars as pl; p=json.load(open('data/bronze/housing_production/latest.json')); m=json.load(open(p['manifest_path'])); print(m['dataset'], m['source']['record_count'], m['source']['column_count'], {c['name']: c['passed'] for c in m['checks']}); print(pl.scan_parquet(p['parquet_path']).select(pl.len()).collect().item())"
 ```
 
 Dagster 1.13 prints a notice that these commands are superseded by its newer
